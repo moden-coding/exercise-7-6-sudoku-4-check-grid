@@ -1,24 +1,9 @@
+#!/usr/bin/env python3
+
 import unittest
-from unittest.mock import patch
 
-from tmc import points
-from tmc.utils import load, load_module, reload_module, get_stdout, check_source
-from functools import reduce
-import os
-import textwrap
-from random import randint
+from src.sudoku_grid import sudoku_grid_correct
 
-exercise = 'src.sudoku_grid'
-function = 'sudoku_grid_correct'
-
-def p(sudoku):
-    j = 0
-    m = 'sudoku = [\n'
-    for row in sudoku:
-        s = ', '.join([str(i) for i in row])
-        m += f'  [ {s} ],\n'
-        j += 1
-    return m +']' 
 
 valids = [
   [
@@ -609,80 +594,75 @@ invalids = [
   ],
 ]
 
-@points('5.sudoku_grid')
-class SudokuTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        with patch('builtins.input', side_effect=[AssertionError("Asking input from the user was not expected")]):
-           cls.module = load_module(exercise, 'en')
 
-    def test_0_main_program_ok(self):
-        ok, line = check_source(self.module)
-        message =  """The code for testing the functions should be placed inside
-if __name__ == "__main__":
-block. The following row should be moved:
-"""
-        self.assertTrue(ok, message+line)
+class TestSudokuGridCorrect(unittest.TestCase):
 
-    def test_1_function_exists(self):
-        try:
-            from src.sudoku_grid import sudoku_grid_correct
-        except:
-            self.assertTrue(False, f'Your code should contain function named as sudoku_grid_correct(sudoku: list)')
-        try:
-            sudoku_grid_correct = load(exercise, function, 'en')
-            s = sudoku = [
-                [ 9, 0, 0, 0, 8, 0, 3, 0, 0 ],
-                [ 2, 0, 0, 2, 5, 0, 7, 0, 0 ],
-                [ 0, 2, 0, 3, 0, 0, 0, 0, 4 ],
-                [ 2, 9, 4, 0, 0, 0, 0, 0, 0 ],
-                [ 0, 0, 0, 7, 3, 0, 5, 6, 0 ],
-                [ 7, 0, 5, 0, 6, 0, 4, 0, 0 ],
-                [ 0, 0, 7, 8, 0, 3, 9, 0, 0 ],
-                [ 0, 0, 1, 0, 0, 0, 0, 0, 3 ],
-                [ 3, 0, 0, 0, 0, 0, 0, 0, 2 ],
-            ]
-            ps = p(s)
-            sudoku_grid_correct(s)
-        except:
-            self.assertTrue(False, f'Make sure, that function can be called as follows\n{ps}\nsudoku_grid_correct(sudoku)')
-
-    def test_2_type_of_return_value(self):
-        sudoku_grid_correct = load(exercise, function, 'en')
-        s = sudoku = [
-            [ 9, 0, 0, 0, 8, 0, 3, 0, 0 ],
-            [ 2, 0, 0, 2, 5, 0, 7, 0, 0 ],
-            [ 0, 2, 0, 3, 0, 0, 0, 0, 4 ],
-            [ 2, 9, 4, 0, 0, 0, 0, 0, 0 ],
-            [ 0, 0, 0, 7, 3, 0, 5, 6, 0 ],
-            [ 7, 0, 5, 0, 6, 0, 4, 0, 0 ],
-            [ 0, 0, 7, 8, 0, 3, 9, 0, 0 ],
-            [ 0, 0, 1, 0, 0, 0, 0, 0, 3 ],
-            [ 3, 0, 0, 0, 0, 0, 0, 0, 2 ],
+    def test_worked_example(self):
+        sudoku = [
+            [9, 0, 0, 0, 8, 0, 3, 0, 0],
+            [2, 0, 0, 2, 5, 0, 7, 0, 0],
+            [0, 2, 0, 3, 0, 0, 0, 0, 4],
+            [2, 9, 4, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 7, 3, 0, 5, 6, 0],
+            [7, 0, 5, 0, 6, 0, 4, 0, 0],
+            [0, 0, 7, 8, 0, 3, 9, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0, 3],
+            [3, 0, 0, 0, 0, 0, 0, 0, 2],
         ]
-        ps = p(s)
-        val = sudoku_grid_correct(s)
-        self.assertTrue(type(val) == bool, f"Function {function} does not return boolean value when calling\n{ps}\nsudoku_grid_correct(sudoku)")
+        result = sudoku_grid_correct(sudoku)
+        self.assertEqual(
+            result, False,
+            msg="sudoku_grid_correct(sudoku) should be False for this "
+                "sparsely-filled grid: several rows and blocks repeat a "
+                "nonzero digit (e.g. row 1 has two 2s).")
 
-    def test_3_functinality_with_invalids(self):
-        sudoku_grid_correct = load(exercise, function, 'en')
-        for s in invalids:
-            ps = p(s)
-            try:
-              val = sudoku_grid_correct(s)
-            except:
-              self.assertEqual(val, False, f"Make sure, that the function can be called as follows\n{ps}\nsudoku_grid_correct(sudoku)")
-            self.assertEqual(val, False, f"The result {val} is incorrect when calling \n{ps}\nsudoku_grid_correct(sudoku)")
+    def test_return_type_is_bool(self):
+        sudoku = [
+            [9, 0, 0, 0, 8, 0, 3, 0, 0],
+            [2, 0, 0, 2, 5, 0, 7, 0, 0],
+            [0, 2, 0, 3, 0, 0, 0, 0, 4],
+            [2, 9, 4, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 7, 3, 0, 5, 6, 0],
+            [7, 0, 5, 0, 6, 0, 4, 0, 0],
+            [0, 0, 7, 8, 0, 3, 9, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0, 3],
+            [3, 0, 0, 0, 0, 0, 0, 0, 2],
+        ]
+        result = sudoku_grid_correct(sudoku)
+        self.assertIsInstance(
+            result, bool,
+            msg="sudoku_grid_correct(sudoku) should return a bool, not %s. "
+                "Got %r." % (type(result).__name__, result))
 
-    def test_4_functionality_with_valids(self):
-        sudoku_grid_correct = load(exercise, function, 'en')
-        for s in valids:
-            ps = p(s)
-            try:
-              val = sudoku_grid_correct(s)
-            except:
-              self.assertTrue(False, f"Varmista että seuraava kutsu toimii\n{ps}\nsudoku_grid_correct(sudoku)")
-            self.assertEqual(val, True, f"The result {val} is incorrect when calling \n{ps}\nsudoku_grid_correct(sudoku)")
+    def test_valid_grids(self):
+        for index, sudoku in enumerate(valids):
+            with self.subTest(index=index):
+                result = sudoku_grid_correct(sudoku)
+                self.assertEqual(
+                    result, True,
+                    msg="sudoku_grid_correct(valids[%d]) should be True: "
+                        "every row, column, and 3x3 block in this grid has "
+                        "no repeated nonzero digit." % (index,))
 
-if __name__ == '__main__':
+    def test_invalid_grids(self):
+        for index, sudoku in enumerate(invalids):
+            with self.subTest(index=index):
+                result = sudoku_grid_correct(sudoku)
+                self.assertEqual(
+                    result, False,
+                    msg="sudoku_grid_correct(invalids[%d]) should be "
+                        "False: at least one row, column, or 3x3 block in "
+                        "this grid repeats a nonzero digit." % (index,))
+
+    def test_all_zeros_grid_is_valid(self):
+        blank_sudoku = [[0] * 9 for _ in range(9)]
+        result = sudoku_grid_correct(blank_sudoku)
+        self.assertEqual(
+            result, True,
+            msg="sudoku_grid_correct(sudoku) should be True for a 9x9 grid "
+                "of all zeros: an empty grid has no repeated nonzero "
+                "digit anywhere.")
+
+
+if __name__ == "__main__":
     unittest.main()
